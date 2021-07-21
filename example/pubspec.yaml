@@ -24,6 +24,7 @@ dependencies:
   flutter:
     sdk: flutter
   async: ^2.5.0
+  usb_serial: ^0.3.0
 
 
 
@@ -34,9 +35,6 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
-  usb_serial:
-    path: ../
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 

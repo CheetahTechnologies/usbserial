@@ -18,8 +18,8 @@ class _MyAppState extends State<MyApp> {
   List<Widget> _ports = [];
   List<Widget> _serialData = [];
 
-  StreamSubscription<String>? _subscription;
-  Transaction<String>? _transaction;
+  StreamSubscription<Uint8List>? _subscription;
+  Transaction<Uint8List>? _transaction;
   UsbDevice? _device;
 
   TextEditingController _textController = TextEditingController();
@@ -61,17 +61,19 @@ class _MyAppState extends State<MyApp> {
 
     await _port!.setDTR(true);
     await _port!.setRTS(true);
-    await _port!.setPortParameters(115200, UsbPort.DATABITS_8, UsbPort.STOPBITS_1, UsbPort.PARITY_NONE);
+    await _port!.setPortParameters(
+        9600, UsbPort.DATABITS_8, UsbPort.STOPBITS_1, UsbPort.PARITY_NONE);
 
-    _transaction = Transaction.stringTerminated(_port!.inputStream as Stream<Uint8List>, Uint8List.fromList([13, 10]));
+    _transaction = Transaction.terminated(
+        _port!.inputStream as Stream<Uint8List>, Uint8List.fromList([10]));
 
-    _subscription = _transaction!.stream.listen((String line) {
-      setState(() {
-        _serialData.add(Text(line));
-        if (_serialData.length > 20) {
-          _serialData.removeAt(0);
-        }
-      });
+    _subscription = _transaction!.stream.listen((var line) {
+      print("number of received bytes: " + line.length.toString());
+      print(line);
+      if (line.length == 5) {
+        var val = (line[1] | line[2] << 8 | line[3] << 16) + line[4] / 100;
+        print(val);
+      }
     });
 
     setState(() {
@@ -92,7 +94,7 @@ class _MyAppState extends State<MyApp> {
       _ports.add(ListTile(
           leading: Icon(Icons.usb),
           title: Text(device.productName!),
-          subtitle: Text(device.manufacturerName!),
+          subtitle: Text(device.pid!.toString()),
           trailing: ElevatedButton(
             child: Text(_device == device ? "Disconnect" : "Connect"),
             onPressed: () {
@@ -134,7 +136,11 @@ class _MyAppState extends State<MyApp> {
       ),
       body: Center(
           child: Column(children: <Widget>[
-        Text(_ports.length > 0 ? "Available Serial Ports" : "No serial devices available", style: Theme.of(context).textTheme.headline6),
+        Text(
+            _ports.length > 0
+                ? "Available Serial Ports"
+                : "No serial devices available",
+            style: Theme.of(context).textTheme.headline6),
         ..._ports,
         Text('Status: $_status\n'),
         Text('info: ${_port.toString()}\n'),
