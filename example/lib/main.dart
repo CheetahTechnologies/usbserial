@@ -67,7 +67,7 @@ class _MyAppState extends State<MyApp> {
     _transaction = Transaction.terminated(
         _port!.inputStream as Stream<Uint8List>, Uint8List.fromList([10]));
 
-    _subscription = _transaction!.stream.listen((var line) {
+    _subscription = _transaction!.stream.listen((Uint8List line) {
       print("number of received bytes: " + line.length.toString());
       print(line);
       if (line.length == 5) {
